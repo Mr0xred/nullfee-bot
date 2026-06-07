@@ -232,15 +232,19 @@ async def register_and_spin_wrapper(ref_code, sem, connector, proxy_url):
                     data = await resp.json()
                     if "user" not in data:
                         counter["fail"] += 1
+                        await session.close()
                         return
                 elif resp.status == 429:
                     await asyncio.sleep(random.uniform(2, 4))
                     counter["fail"] += 1
+                    print(f"  [-] Limit 429: {username} (Terlalu cepat/IP diblokir sementara)")
+                    await session.close()
                     return
                 else:
                     counter["fail"] += 1
                     text = await resp.text()
                     print(f"  [-] Register {resp.status}: {username} - {text[:80]}")
+                    await session.close()
                     return
 
             # Mystery box spin
