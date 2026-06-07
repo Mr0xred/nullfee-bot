@@ -247,6 +247,8 @@ async def register_and_spin_wrapper(session, ref_code, sem, proxy_url):
                     return
                 else:
                     counter["fail"] += 1
+                    text = await resp.text()
+                    print(f"  [-] Register {resp.status}: {username} - {text[:80]}")
                     return
 
             # Mystery box spin
@@ -295,8 +297,10 @@ async def register_and_spin_wrapper(session, ref_code, sem, proxy_url):
 
         except asyncio.TimeoutError:
             counter["fail"] += 1
+            print(f"  [-] Timeout: {username}")
         except Exception as e:
             counter["fail"] += 1
+            print(f"  [-] Error {username}: {type(e).__name__} {str(e)[:60]}")
 
 
 async def login_and_swap(account, sem, connector, proxy_url):
