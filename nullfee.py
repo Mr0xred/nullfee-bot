@@ -401,12 +401,16 @@ async def run_daily_swap(accounts, num_threads, proxy_list=None):
 
 def save_results():
     """Simpan hasil ke file"""
-    with open("result.json", "w") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    result_path = os.path.join(script_dir, "result.json")
+    bnb_path = os.path.join(script_dir, "bnbresult.txt")
+
+    with open(result_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"\n[*] Hasil disimpan ke result.json ({len(results)} akun)")
 
     if bnb_results:
-        with open("bnbresult.txt", "w") as f:
+        with open(bnb_path, "w") as f:
             for entry in bnb_results:
                 mb = entry.get("mysteryBox", {})
                 f.write(f"{entry['username']}:{entry['password']} | BNB Prize: {mb.get('label', '')} amount={mb.get('amount', 0)}\n")
@@ -435,8 +439,10 @@ def menu_register():
         num_threads = 10
 
     proxy_list = []
-    if os.path.exists("proxies.txt"):
-        with open("proxies.txt", "r") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    proxies_path = os.path.join(script_dir, "proxies.txt")
+    if os.path.exists(proxies_path):
+        with open(proxies_path, "r") as f:
             proxy_list = [line.strip() for line in f if line.strip()]
         print(f"[*] Ditemukan {len(proxy_list)} proxy di proxies.txt, akan digunakan secara acak.")
     else:
@@ -465,11 +471,14 @@ def menu_daily_swap():
     print("  MENU 2: DAILY SWAP")
     print("=" * 50)
 
-    if not os.path.exists("result.json"):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    result_path = os.path.join(script_dir, "result.json")
+
+    if not os.path.exists(result_path):
         print("[-] File result.json tidak ditemukan! Register dulu.")
         return
 
-    with open("result.json", "r") as f:
+    with open(result_path, "r") as f:
         accounts = json.load(f)
 
     if not accounts:
@@ -484,8 +493,9 @@ def menu_daily_swap():
         num_threads = 10
 
     proxy_list = []
-    if os.path.exists("proxies.txt"):
-        with open("proxies.txt", "r") as f:
+    proxies_path = os.path.join(script_dir, "proxies.txt")
+    if os.path.exists(proxies_path):
+        with open(proxies_path, "r") as f:
             proxy_list = [line.strip() for line in f if line.strip()]
         print(f"[*] Ditemukan {len(proxy_list)} proxy di proxies.txt, akan digunakan secara acak.")
     else:
