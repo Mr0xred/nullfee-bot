@@ -370,6 +370,8 @@ async def login_and_swap(account, sem, connector, proxy_url):
                             if sdata.get("ok"):
                                 current_balance = sdata.get("balances", {}).get("usdCents", 0)
                                 swap_count += 1
+                                if swap_count % 10 == 0:
+                                    print(f"  [~] {username}: {swap_count} swaps... (Sisa ${current_balance/100:.2f})")
                             else:
                                 break
                         elif resp.status == 429:
