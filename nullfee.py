@@ -424,10 +424,9 @@ def menu_register():
     print("  MENU 1: REGISTER AKUN NULLFEE")
     print("=" * 50)
 
-    ref_code = input("\n[?] Masukkan kode referral: ").strip()
+    ref_code = input("\n[?] Masukkan kode referral (Enter untuk default mr0xred_8208): ").strip()
     if not ref_code:
-        print("[-] Kode referral tidak boleh kosong!")
-        return
+        ref_code = "mr0xred_8208"
 
     try:
         num_accounts = int(input("[?] Jumlah akun yang akan diregister: ").strip())
