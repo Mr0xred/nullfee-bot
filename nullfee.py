@@ -180,30 +180,16 @@ async def run_register(ref_code, num_accounts, num_threads, proxy_list=None):
 
     connector = aiohttp.TCPConnector(limit=num_threads, limit_per_host=num_threads)
 
-    # Setiap akun butuh cookie jar sendiri (session terpisah)
     tasks = []
     progress_task = asyncio.create_task(progress_printer(num_accounts))
 
     for i in range(num_accounts):
         proxy_url = random.choice(proxy_list) if proxy_list else None
-        
-        # Setiap akun pake cookie jar sendiri biar session terpisah
-        jar = aiohttp.CookieJar()
-        if proxy_url:
-            session = aiohttp.ClientSession(connector=connector, cookie_jar=jar, trust_env=True)
-        else:
-            session = aiohttp.ClientSession(connector=connector, cookie_jar=jar)
-
-        task = asyncio.create_task(register_and_spin_wrapper(session, ref_code, sem, proxy_url))
-        tasks.append((task, session))
+        task = asyncio.create_task(register_and_spin_wrapper(ref_code, sem, connector, proxy_url))
+        tasks.append(task)
 
     # Tunggu semua selesai
-    for task, session in tasks:
-        try:
-            await task
-        except Exception:
-            pass
-        await session.close()
+    await asyncio.gather(*tasks, return_exceptions=True)
 
     progress_task.cancel()
     try:
@@ -214,9 +200,15 @@ async def run_register(ref_code, num_accounts, num_threads, proxy_list=None):
     await connector.close()
 
 
-async def register_and_spin_wrapper(session, ref_code, sem, proxy_url):
+async def register_and_spin_wrapper(ref_code, sem, connector, proxy_url):
     """Wrapper yang handle proxy per-request"""
     async with sem:
+        jar = aiohttp.CookieJar()
+        kwargs_session = {"connector": connector, "cookie_jar": jar, "connector_owner": False}
+        if proxy_url:
+            kwargs_session["trust_env"] = True
+            
+        session = aiohttp.ClientSession(**kwargs_session)
         username = generate_username()
         payload = {
             "username": username,
@@ -301,6 +293,8 @@ async def register_and_spin_wrapper(session, ref_code, sem, proxy_url):
         except Exception as e:
             counter["fail"] += 1
             print(f"  [-] Error {username}: {type(e).__name__} {str(e)[:60]}")
+            
+        await session.close()
 
 
 async def login_and_swap(account, sem, connector, proxy_url):
